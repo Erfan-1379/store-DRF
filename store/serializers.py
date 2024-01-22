@@ -27,3 +27,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_price_rials(self, product):
         return int(product.unit_price * DOLLARS_TO_RIALS)
+
+    def validate(self, data):
+        print(data)
+        if len(data['name']) < 6:
+            raise serializers.ValidationError('Length is must be at least 6')
+        return data
