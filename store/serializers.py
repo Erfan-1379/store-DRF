@@ -1,4 +1,5 @@
 from _decimal import Decimal
+from django.utils.text import slugify
 from rest_framework import serializers
 
 from .models import *
@@ -33,3 +34,15 @@ class ProductSerializer(serializers.ModelSerializer):
         if len(data['name']) < 6:
             raise serializers.ValidationError('Length is must be at least 6')
         return data
+
+    def create(self, validated_data):
+        product = Product(**validated_data)
+        product.slug = slugify(product.name)
+        product.save()
+        return product
+
+    # def update(self, instance, validated_data):
+    #     instance.inventory = 1
+    #     instance.save()
+    #     return instance
+

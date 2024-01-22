@@ -8,34 +8,30 @@ from .serializers import *
 from .models import *
 
 
-@api_view()
-def product_list(request):
-    products_queryset = Product.objects.select_related('category').all()
-    serializer = ProductSerializer(products_queryset, context={'request': request}, many=True)
-    return Response(serializer.data)
-
-
 @api_view(['GET', 'POST'])
-def product_detail(request, pk):
+def product_list(request):
     if request.method == 'GET':
-        product = get_object_or_404(Product.objects.select_related('category'), pk=pk)
-        # try:
-        #     product = Product.objects.get(pk=id)
-        # except Product.DoesNotExist:
-        #     return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = ProductSerializer(product, context={'request': request})
+        products_queryset = Product.objects.select_related('category').all()
+        serializer = ProductSerializer(products_queryset, context={'request': request}, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = ProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response('All Ok!')
-        # if serializer.is_valid():
-        #     serializer.validated_data()
-        #     return Response('All Ok!')
-        # else:
-        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # return Response('OK')
+
+
+@api_view(['GET', 'PUT'])
+def product_detail(request, pk):
+    product = get_object_or_404(Product.objects.select_related('category'), pk=pk)
+    if request.method == "GET":
+        serializer = ProductSerializer(product, context={'request': request})
+        return Response(serializer.data)
+    elif request.method == "PUT":
+        serializer = ProductSerializer(product, data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 @api_view()
