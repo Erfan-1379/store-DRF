@@ -7,9 +7,15 @@ from .models import *
 DOLLARS_TO_RIALS = 50000
 
 
-class CategorySerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=255)
-    description = serializers.CharField(max_length=500)
+class CategorySerializer(serializers.ModelSerializer):
+    nums_products = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ['id', 'title', 'description', 'nums_products']
+
+    def get_nums_products(self, category):
+        return category.products.count()
 
 
 class ProductSerializer(serializers.ModelSerializer):
