@@ -8,14 +8,15 @@ DOLLARS_TO_RIALS = 50000
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    nums_products = serializers.SerializerMethodField()
+    # nums_products = serializers.SerializerMethodField()
+    nums_products = serializers.IntegerField(source='products.count', read_only=True)
 
     class Meta:
         model = Category
         fields = ['id', 'title', 'description', 'nums_products']
 
-    def get_nums_products(self, category):
-        return category.products.count()
+    # def get_nums_products(self, category):
+    #     return category.products.count()
 
 
 class ProductSerializer(serializers.ModelSerializer):
