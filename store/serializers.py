@@ -53,3 +53,12 @@ class ProductSerializer(serializers.ModelSerializer):
     #     instance.save()
     #     return instance
 
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['id', 'name', 'body']
+
+    def create(self, validated_data):
+        product_id = self.context['product_pk']
+        return Comment.objects.create(product_id=product_id, **validated_data)

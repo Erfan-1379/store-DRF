@@ -36,3 +36,14 @@ class CategoryViewSet(ModelViewSet):
             return Response({'error': 'There is some product relation this category. please remove them first.'})
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CommentViewSet(ModelViewSet):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        product_pk = self.kwargs['product_pk']
+        return Comment.objects.filter(product_id=product_pk).all()
+
+    def get_serializer_context(self):
+        return {'product_pk': self.kwargs['product_pk']}
