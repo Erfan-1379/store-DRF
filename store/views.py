@@ -1,16 +1,22 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
-
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from .serializers import *
+from .filters import *
 from .models import *
 
 
 class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
-    queryset = Product.objects.select_related('category').all()
+    queryset = Product.objects.all()
+    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ['name', 'unit_price', 'inventory']
+    search_fields = ['name', 'category__title']
+    filterset_class = ProductFilter
 
     def get_serializer_context(self):
         return {'request': self.request}
