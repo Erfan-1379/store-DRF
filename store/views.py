@@ -5,9 +5,10 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from .serializers import *
-from .filters import *
-from .models import *
+from .models import Product, Category, Comment
+from .serializers import ProductSerializer, CategorySerializer, CommentSerializer
+from .filters import ProductFilter
+from .pagination import DefaultPagination
 
 
 class ProductViewSet(ModelViewSet):
@@ -17,6 +18,7 @@ class ProductViewSet(ModelViewSet):
     ordering_fields = ['name', 'unit_price', 'inventory']
     search_fields = ['name', 'category__title']
     filterset_class = ProductFilter
+    pagination_class = DefaultPagination
 
     def get_serializer_context(self):
         return {'request': self.request}
