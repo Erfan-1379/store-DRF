@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Category, Discount, Product, Customer, Address, Order, OrderItem, Comment, Cart, CartItem
+from . import models
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -48,8 +49,16 @@ class CommentAdmin(admin.ModelAdmin):
     search_fields = ['name', 'body']
 
 
+class CartItemInline(admin.TabularInline):
+    model = models.CartItem
+    fields = ['id', 'product', 'quantity']
+    extra = 0
+    min_num = 1
+
+
 class CartAdmin(admin.ModelAdmin):
-    list_display = ['created_at']
+    list_display = ['id', 'created_at']
+    inlines = [CartItemInline]
 
 
 class CartItemAdmin(admin.ModelAdmin):
