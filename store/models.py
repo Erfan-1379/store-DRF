@@ -49,9 +49,9 @@ class Order(models.Model):
     ORDER_STATUS_UNPAID = 'u'
     ORDER_STATUS_CANCELED = 'c'
     ORDER_STATUS = [
-        (ORDER_STATUS_PAID,'Paid'),
-        (ORDER_STATUS_UNPAID,'Unpaid'),
-        (ORDER_STATUS_CANCELED,'Canceled'),
+        (ORDER_STATUS_PAID, 'Paid'),
+        (ORDER_STATUS_UNPAID, 'Unpaid'),
+        (ORDER_STATUS_CANCELED, 'Canceled'),
     ]
     
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='orders')
