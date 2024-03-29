@@ -21,7 +21,16 @@ class ProductAdmin(admin.ModelAdmin):
 
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'email', 'phone_number', 'birth_date']
-    search_fields = ['first_name', 'last_name', 'email', 'phone_number']
+    search_fields = ['user__first_name', 'user__last_name', 'user__email', 'phone_number']
+
+    def first_name(self, customer):
+        return customer.user.first_name
+
+    def last_name(self, customer):
+        return customer.user.last_name
+
+    def email(self, customer):
+        return customer.user.email
 
 
 class AddressAdmin(admin.ModelAdmin):
