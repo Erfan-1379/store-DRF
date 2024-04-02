@@ -5,10 +5,11 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.decorators import action
 
-from .models import Product, Category, Comment, Cart, CartItem
+from .models import Product, Category, Comment, Cart, CartItem, Customer
 from .serializers import (ProductSerializer, CategorySerializer, CommentSerializer, CartSerializer, CartItemSerializer,
-                          AddCartItemSerializer, UpdateCartItemSerializer)
+                          AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer)
 from .filters import ProductFilter
 from .pagination import DefaultPagination
 
@@ -81,3 +82,22 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
     serializer_class = CartSerializer
     queryset = Cart.objects.prefetch_related('items__product').all()
     # lookup_value_regex = '[0-9a-fA-F]{8}\-?[0-9a-fA-F]{4}\-?[0-9a-fA-F]{4}\-?[0-9a-fA-F]{4}\-?[0-9a-fA-F]{12}'
+
+
+class CustomerVewSet(ModelViewSet):
+    serializer_class = CustomerSerializer
+    queryset = Customer.objects.all()
+
+    @action(detail=False, methods=['GET', 'PUT'])
+    def me(self, request):
+        user_id = request.user.id
+        customer = Customer.objects.get(user_id=user_id)
+        if request.method == 'GET':
+            serializer = CustomerSerializer(customer)
+            return Response(serializer.data)
+        elif request.method == 'PUT':
+            serializer = CustomerSerializer(customer, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
