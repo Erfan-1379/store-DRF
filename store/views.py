@@ -6,14 +6,14 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 from .models import Product, Category, Comment, Cart, CartItem, Customer
 from .serializers import (ProductSerializer, CategorySerializer, CommentSerializer, CartSerializer, CartItemSerializer,
                           AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer)
 from .filters import ProductFilter
 from .pagination import DefaultPagination
-from .permissions import IsAdminOrReadonly
+from .permissions import IsAdminOrReadonly, SendPrivetEmailToCustomerPermission, CustomDjangoModelPermission
 
 
 class ProductViewSet(ModelViewSet):
@@ -24,6 +24,7 @@ class ProductViewSet(ModelViewSet):
     search_fields = ['name', 'category__title']
     filterset_class = ProductFilter
     pagination_class = DefaultPagination
+    permission_classes = [IsAdminOrReadonly]
 
     def get_serializer_context(self):
         return {'request': self.request}
@@ -104,4 +105,8 @@ class CustomerVewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
+
+    @action(detail=True, permission_classes=[SendPrivetEmailToCustomerPermission])
+    def send_privet_email(self, request, pk):
+        return Response(f'sending email to Customer {pk=}')
 
