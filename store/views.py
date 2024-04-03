@@ -6,12 +6,14 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 from .models import Product, Category, Comment, Cart, CartItem, Customer
 from .serializers import (ProductSerializer, CategorySerializer, CommentSerializer, CartSerializer, CartItemSerializer,
                           AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer)
 from .filters import ProductFilter
 from .pagination import DefaultPagination
+from .permissions import IsAdminOrReadonly
 
 
 class ProductViewSet(ModelViewSet):
@@ -39,6 +41,7 @@ class ProductViewSet(ModelViewSet):
 class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.prefetch_related('products').all()
+    permission_classes = [IsAdminOrReadonly]
 
     def destroy(self, request, *args, **kwargs):
         pk = kwargs.get('pk')
@@ -87,8 +90,9 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 class CustomerVewSet(ModelViewSet):
     serializer_class = CustomerSerializer
     queryset = Customer.objects.all()
+    permission_classes = [IsAdminUser]
 
-    @action(detail=False, methods=['GET', 'PUT'])
+    @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
     def me(self, request):
         user_id = request.user.id
         customer = Customer.objects.get(user_id=user_id)
