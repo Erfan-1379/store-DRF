@@ -29,6 +29,9 @@ class Product(models.Model):
     datetime_modified = models.DateTimeField(auto_now=True)
     discounts = models.ManyToManyField(Discount, blank=True)
 
+    def __str__(self):
+        return f'{self.name}'
+
     class Meta:
         ordering = ['id']
 
@@ -37,6 +40,9 @@ class Customer(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     phone_number = models.CharField(max_length=255)
     birth_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.user}'
 
     class Meta:
         permissions = [

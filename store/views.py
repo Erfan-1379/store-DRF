@@ -7,13 +7,16 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from django.db.models import Prefetch
 
-from .models import Product, Category, Comment, Cart, CartItem, Customer
+from .models import Product, Category, Comment, Cart, CartItem, Customer, Order, OrderItem
 from .serializers import (ProductSerializer, CategorySerializer, CommentSerializer, CartSerializer, CartItemSerializer,
-                          AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer)
+                          AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer,
+                          OrderForAdminSerializer, OrderCreateSerializer, OrderUpdateSerializer)
 from .filters import ProductFilter
 from .pagination import DefaultPagination
 from .permissions import IsAdminOrReadonly, SendPrivetEmailToCustomerPermission, CustomDjangoModelPermission
+from .signals import order_create
 
 
 class ProductViewSet(ModelViewSet):
@@ -110,3 +113,54 @@ class CustomerVewSet(ModelViewSet):
     def send_privet_email(self, request, pk):
         return Response(f'sending email to Customer {pk=}')
 
+
+class OrderViewSet(ModelViewSet):
+    # permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'delete', 'options', 'head']
+
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'DELETE']:
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        queryset = (Order.objects.prefetch_related(
+            Prefetch(
+                'items',
+                queryset=OrderItem.objects.select_related('product'),
+            )
+        ).select_related('customer__user').
+                    all())
+        user = self.request.user
+
+        if user.is_staff:
+            return queryset
+
+        return queryset.filter(customer__user_id=user.id)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return OrderCreateSerializer
+
+        if self.request.method == 'PATCH':
+            return OrderUpdateSerializer
+
+        if self.request.user.is_staff:
+            return OrderForAdminSerializer
+        return OrderSerializer
+
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.id}
+
+    def create(self, request, *args, **kwargs):
+        create_order_serializer = OrderCreateSerializer(
+            data=request.data,
+            context=self.get_serializer_context()
+        )
+        create_order_serializer.is_valid(raise_exception=True)
+        created_order = create_order_serializer.save()
+
+        order_create.send_robust(self.__class__, order=created_order)
+
+        serializer = OrderSerializer(created_order)
+        return Response(serializer.data)
